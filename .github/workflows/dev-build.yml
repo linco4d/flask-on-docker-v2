@@ -1,0 +1,30 @@
+name: Dev Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-dev:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build development containers
+        run: docker compose -f docker-compose.yml build
+
+      - name: Start development services
+        run: docker compose -f docker-compose.yml up -d
+
+      - name: Wait for app to be ready
+        run: |
+          sleep 10
+          curl --fail http://localhost:5005 || exit 1
+
+      - name: Shutdown containers
+        if: always()
+        run: docker compose -f docker-compose.yml down
